@@ -11,7 +11,7 @@ import hashlib
 SALTY_GOODNESS = "Sup3r-c0mplex s4lty g0On3sS"
 logging.basicConfig(filename="errors.log",level=logging.ERROR)
 
-class Setup():
+class Setup(object):
     def __init__(self):
         sql_user, sql_password = self.get_sql_credentials()
         create_the_database = False
@@ -82,8 +82,6 @@ class Setup():
         pwd = getpass.getpass("Enter SQL password: ")
         
         return username, pwd
-    
-    
 
 def main():
     gtk.main()
