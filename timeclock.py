@@ -11,32 +11,11 @@ import hashlib
 SALTY_GOODNESS = "Sup3r-c0mplex s4lty g0On3sS"
 
 class TimeClock(object):
-    def process_login(self, login_box):
-        username = self.username_entry.get_text()
-        password = hashlib.sha512(self.password_entry.get_text() + SALTY_GOODNESS).hexdigest()
-        self.user = self.SQL.get_user(username, password)
-        if self.user.active:
-            self.login_box.remove(self.username_entry)
-            self.login_box.remove(self.password_entry)
-            self.login_box.remove(self.login_button)
-            self.login_box.hide()
-            self.window.set_size_request(400,500)
-            self.build_menu_bar()
-            self.build_scroll_window()
-            self.build_bottom_buttons()
-        else:
-            self.login_box.remove(self.username_entry)
-            self.login_box.remove(self.password_entry)
-            self.login_box.remove(self.login_button)
-            self.login_box.hide()
-            self.build_login_box()
-            
-        
     def __init__(self):
         self.date_manager = DateManager()
         self.SQL = SQLConnection()
         self.user = None
-        self.VERSION = "v1.3.1"
+        self.VERSION = "v1.5.0"
         self.ABOUT = "Company, Inc. Time Clock {}\n\nCreated by Mike Jarrett for internal Company use.\n\nReport all errors to jarrettm@msu.edu or xXXXX\n(c)2007".format(self.VERSION)
         
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -44,7 +23,7 @@ class TimeClock(object):
         self.window.set_position(gtk.WIN_POS_CENTER - 350)
         self.window.set_resizable(False) 
         self.window.connect("destroy", self.close_application)
-        self.window.set_title("Company Time Clock {}".format(self.VERSION))
+        self.window.set_title("Time Clock {}".format(self.VERSION))
         self.window.set_border_width(0)
     
         self.vertical_box_main = gtk.VBox(False, 0)
@@ -60,9 +39,52 @@ class TimeClock(object):
         ##Create everything else - but hidden
         self.main_interface = gtk.VBox(False, 10)
         self.main_interface.set_border_width(10)
+        self.status_Bar = gtk.Statusbar()
+        
+        
         self.vertical_box_main.pack_start(self.main_interface, True, True, 0)
         self.main_interface.show()
         self.window.show()
+
+
+    def process_login(self, login_box):
+        username = self.username_entry.get_text()
+        password = hashlib.sha512(self.password_entry.get_text() + SALTY_GOODNESS).hexdigest()
+        self.user = self.SQL.get_user(username, password)
+        if self.user:
+            if self.user.active:
+                self.login_box.remove(self.username_entry)
+                self.login_box.remove(self.password_entry)
+                self.login_box.remove(self.login_button)
+                self.login_box.hide()
+                if self.user.admin:
+                    self.window.set_title("Time Clock {} - {} (admin)".format(self.VERSION, self.user.username))
+                else:
+                    self.window.set_title("Time Clock {} - {}".format(self.VERSION, self.user.username))
+                self.window.set_size_request(400,500)
+                self.build_menu_bar()
+                self.build_scroll_window()
+                self.build_bottom_buttons()
+            elif not self.user.active:
+                dialog = gtk.MessageDialog(message_format="User {} is not active".format(self.user.username), buttons=gtk.BUTTONS_OK)
+                dialog.run()
+                dialog.destroy()
+
+                self.login_box.remove(self.username_entry)
+                self.login_box.remove(self.password_entry)
+                self.login_box.remove(self.login_button)
+                self.login_box.hide()
+                self.build_login_box()
+        else:
+            dialog = gtk.MessageDialog(message_format="User {} could not be found".format(username), buttons=gtk.BUTTONS_OK)
+            dialog.run()
+            dialog.destroy()
+            
+            self.login_box.remove(self.username_entry)
+            self.login_box.remove(self.password_entry)
+            self.login_box.remove(self.login_button)
+            self.login_box.hide()
+            self.build_login_box()           
 
     def build_login_box(self):
         self.username_entry = gtk.Entry(max=0)
@@ -185,7 +207,27 @@ class TimeClock(object):
             self.textbuffer.set_text("Total Time: {}".format(total))
 
     def about_info(self, widget, data=""):
-        self.textbuffer.set_text(self.ABOUT)
+        help_string = "Report any bugs to jarrettm@msu.edu \n\n"
+        help_string += "This software is freely distributed in accordance with \n"
+        help_string += "the GNU Lesser General Public (LGPL) license, version 3 \n"
+        help_string += "or later as published by the Free Software Foundation. \n"
+        help_string += "For details see LGPL: http://www.gnu.org/licenses/lgpl.html \n"
+        help_string += "and GPL: http://www.gnu.org/licenses/gpl-3.0.html \n\n"
+        help_string += "This software is provided by the copyright holders and \n"
+        help_string += "contributors 'as is' and any express or implied warranties, \n"
+        help_string += "including, but not limited to, the implied warranties of \n"
+        help_string += "merchantability and fitness for a particular purpose are \n"
+        help_string += "disclaimed. In no event shall the copyright owner or \n"
+        help_string += "contributors be liable for any direct, indirect, incidental, \n"
+        help_string += "special, exemplary, or consequential damages (including, \n"
+        help_string += "but not limited to, procurement of substitute goods or \n"
+        help_string += "services; loss of use, data, or profits; or business \n"
+        help_string += "interruption) however caused and on any theory of \n"
+        help_string += "liability, whether in contract, strict liability, \n"
+        help_string += "or tort (including negligence or otherwise) arising \n"
+        help_string += "in any way out of the use of this software, even \n"
+        help_string += "if advised of the possibility of such damage."
+        self.textbuffer.set_text(help_string)
 
     def change_password(self, widget, data=""):
         self.window.set_size_request(400,150)
@@ -202,38 +244,50 @@ class TimeClock(object):
         self.password_reset_box = gtk.VBox(False, 10)
         self.password_reset_box.set_border_width(10)
 
+        hbox = gtk.HBox(False, 10)
+        hbox.set_border_width(10)
+        
         reset_button = gtk.Button("Reset Password")
-        reset_button.connect_object("clicked", self.check_passwords_match, self.password_reset_box, password1, password2, reset_button)
-
+        reset_button.connect_object("clicked", self.check_passwords_match, self.password_reset_box, password1, password2, hbox)
+        cancel_button = gtk.Button("Cancel")
+        cancel_button.connect_object("clicked", self.rebuild_main_window, self.password_reset_box, False)
+        
+        hbox.pack_start(reset_button, False, True, 0)
+        hbox.pack_start(cancel_button, False, True, 0)
+        hbox.show()
+        
         self.vertical_box_main.pack_start(self.password_reset_box, True, True, 0)
         self.password_reset_box.show()
         
         self.password_reset_box.pack_start(password1, False, True, 0)
         self.password_reset_box.pack_start(password2, False, True, 0)
-        self.password_reset_box.pack_start(reset_button, False, True, 0)
+        self.password_reset_box.pack_start(hbox, False, True, 0)
         password1.show()
         password2.show()
         reset_button.show()  
+        cancel_button.show()
  
-    def check_passwords_match(self, widget, password1, password2, reset_button):
+    def check_passwords_match(self, widget, password1, password2, hbox):
         if password1.get_text() == password2.get_text():
-            widget.hide()
-            self.window.set_size_request(400,500)
-            self.menubar.show()
-            self.scroll_window.show()
-            self.textview.show()
-            self.button_box.show()
             newpassword = hashlib.sha512(password1.get_text() + SALTY_GOODNESS).hexdigest()
             self.user.password = newpassword
-            self.SQL.run_query(self.user.set_password())
-            
+            self.user.set_password()
+            self.rebuild_main_window(widget, None)
             self.textbuffer.set_text("Password changed successfully")
         else:
-            self.password_reset_box.remove(password1)
-            self.password_reset_box.remove(password2)
-            self.password_reset_box.remove(reset_button)
-            self.password_reset_box.hide()
-            self.change_password(widget)        
+            dialog = gtk.MessageDialog(message_format="Passwords don't match. Please try again", buttons=gtk.BUTTONS_OK)
+            dialog.run()
+            dialog.destroy()
+            password1.set_text("")
+            password2.set_text("")
+            
+    def rebuild_main_window(self, widget, data):
+        widget.hide()
+        self.window.set_size_request(400,500)
+        self.menubar.show()
+        self.scroll_window.show()
+        self.textview.show()
+        self.button_box.show()        
         
     def close_application(self, widget):
         gtk.main_quit()
@@ -247,11 +301,21 @@ class TimeClock(object):
         item_factory.create_items(self.menu_items)
         window.add_accel_group(accel_group)
         self.item_factory = item_factory
-        return item_factory.get_widget("<main>")        
+        return item_factory.get_widget("<main>")
+    
+    def on_dialog_key_press(self, dialog, event):
+        print dialog
+        print event
+        if event.string == ' ':
+            dialog.response(gtk.RESPONSE_OK)
+            return True
+        return False
+    
 
 class AdminControlPanel(TimeClock):
     def delete_event(self, widget, event, data=None):
         self.MAIN_WINDOW.show()
+        self.window.destroy()
         return False
         
     def __init__(self, user, window):
