@@ -36,6 +36,21 @@ class User(Base):
         session.add(self)
         session.commit()
 
+    @staticmethod
+    def is_authenticated():
+        return True
+
+    @staticmethod
+    def is_active():
+        return True
+
+    @staticmethod
+    def is_anonymous():
+        return False
+
+    def get_id(self):
+        return str(self.id)
+
 
 # Define punch-tag relationship table
 _punch_tags = Table(
@@ -73,8 +88,3 @@ class Tag(Base):
 
     def __repr__(self):
         return "<Tag('{}')".format(self.value)
-
-
-if __name__ == '__main__':
-    Base.metadata.create_all(engine)
-    import ipdb; ipdb.set_trace()

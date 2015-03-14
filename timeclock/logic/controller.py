@@ -10,12 +10,12 @@ from datetime import datetime
 from sqlalchemy.orm import sessionmaker
 
 from .db import engine
-from .models import User, Punch, Tag
 from .excepts import DoesNotExist
+from .models import User, Punch, Tag
+from .utils import validate_password
 
 
-class PunchController(object):
-    """ Controller class that handles the punching in and out for users """
+class BaseController(object):
 
     def __init__(self, session=None):
         """ Initialize the punch controller object, if a sesssion is not
@@ -25,6 +25,10 @@ class PunchController(object):
             session_maker = sessionmaker(bind=engine)
             session = session_maker()
         self.session = session
+
+
+class PunchController(BaseController):
+    """ Controller class that handles the punching in and out for users """
 
     def punch_in(self, user_id, description, tags=()):
         """ Adds a new punch entry for the user and if there is an old punch
@@ -138,3 +142,21 @@ class PunchController(object):
                 self.session.add(instance)
                 new_tags.append(instance)
         return new_tags
+
+
+class UserController(BaseController):
+
+    def validate_username_and_password(self, username, password):
+        user = self.get_user(username)
+        if user:
+            validated = validate_password(password, user.password)
+        else:
+            validated = False
+
+        return user, validated
+
+    def get_user(self, username):
+        return self.session.query(User).filter_by(username=username).first()
+
+    def get_user_by_id(self, user_id):
+        return self.session.query(User).filter_by(user_id=user_id).first()

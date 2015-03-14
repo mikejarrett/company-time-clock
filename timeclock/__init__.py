@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 __author__ = "Mike Jarrett"
 __copyright__ = "Copyright 2008 - 2015, Mike Jarrett"
 __credits__ = ["Mike Jarrett"]
