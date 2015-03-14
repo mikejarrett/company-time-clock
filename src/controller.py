@@ -1,20 +1,29 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Classes that control the "punching in" and "punching out" to keep track of
+time, tasks and thing else that needs to be tracked via time
+"""
 
 from datetime import datetime
 
 from sqlalchemy.orm import sessionmaker
 
-from db import engine
-from models import User, Punch, Tag
-from excepts import DoesNotExist
+from .db import engine
+from .models import User, Punch, Tag
+from .excepts import DoesNotExist
 
 
 class PunchController(object):
+    """ Controller class that handles the punching in and out for users """
 
     def __init__(self, session=None):
+        """ Initialize the punch controller object, if a sesssion is not
+        provided instatied one. Assign session to `self.session`
+        """
         if not session:
-            Session = sessionmaker(bind=engine)
-            session = Session()
+            session_maker = sessionmaker(bind=engine)
+            session = session_maker()
         self.session = session
 
     def punch_in(self, user_id, description, tags=()):
@@ -46,6 +55,18 @@ class PunchController(object):
         self.session.commit()
 
     def punch_out(self, user_id):
+        """ Set the `end_time` for the most recent `start_time` punch of the
+        user provided by the `user_id`
+
+        Args:
+            user_id: The user id that this punch will be associated with
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
         now = datetime.now()
         user = self._get_user(user_id)
         self._end_last_punch(user, now)

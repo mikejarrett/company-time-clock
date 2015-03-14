@@ -6,8 +6,8 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
 
-from db import session, engine
-from utils import hash_password
+from .db import session, engine
+from .utils import hash_password
 
 Base = declarative_base()
 
@@ -23,9 +23,9 @@ class User(Base):
     punches = relationship('Punch', backref='user')
 
     def __repr__(self):
-       return "<User(usename='{}', fullname='{}')>".format(
-           self.username, self.fullname
-       )
+        return "<User(usename='{}', fullname='{}')>".format(
+            self.username, self.fullname
+        )
 
     def set_password(self, password):
         """
@@ -42,7 +42,7 @@ _punch_tags = Table(
     'punch_tags', Base.metadata,
     Column('punch_id', Integer, ForeignKey('punches.id')),
     Column('tags_id', Integer, ForeignKey('tags.id'))
- )
+)
 
 
 class Punch(Base):
