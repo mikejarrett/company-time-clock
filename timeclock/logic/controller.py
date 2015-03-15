@@ -7,6 +7,7 @@ time, tasks and thing else that needs to be tracked via time
 
 from datetime import datetime, timedelta
 
+from sqlalchemy import or_
 from sqlalchemy.orm import sessionmaker
 
 from .db import engine
@@ -171,7 +172,9 @@ class PunchController(BaseController):
 
         return self.session.query(Punch).filter_by(user=user).filter(
             Punch.start_time>=start
-        ).filter(Punch.end_time<=end).order_by(Punch.start_time)
+        ).filter(or_(
+            Punch.end_time<=end, Punch.end_time==None
+        )).order_by(Punch.start_time)
 
 
 class UserController(BaseController):
