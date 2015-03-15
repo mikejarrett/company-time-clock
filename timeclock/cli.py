@@ -73,7 +73,7 @@ class TimeClock(object):
         print("Time Clock Menu")
         print("===============")
         for key, options in self._options_mapping.iteritems():
-            print('({}) -- {}'.format(key, options[1]))
+            print('{0:^3} {1}'.format(key, options[1]))
         return raw_input('Please select an options: ')
 
     def punch_in(self):
@@ -102,9 +102,15 @@ class TimeClock(object):
             print('Oops... Something went wrong.')
 
     def list_punches(self):
+        header = '{0:40} {1:26}\t{2:25}'.format(
+            'Description', 'Punch In', 'Punch Out'
+        )
+        print(header)
+        print('=' * len(header))
+
         for punch in self.user.punches:
-            print('{}\t{}\t{}'.format(
-                punch.description, punch.start_time, punch.end_time
+            print('{0:40} {1}\t{2}'.format(
+                punch.description[:40], punch.start_time, punch.end_time
             ))
 
     def create_user(self):
@@ -125,8 +131,13 @@ class TimeClock(object):
         self.user_controller.create_user(username, fullname, password)
 
     def list_users(self):
+        formatter = '{0:20}\t{1:50}'
+        header = formatter.format('Username', 'Full Name')
+        print(header)
+        print("=" * len(header))
         for user in self.user_controller.get_users():
-            print('{}\t{}'.format(user.username, user.fullname))
+            if user.username is None:
+            print(formatter.format(user.username, user.fullname))
 
 
 if __name__ == '__main__':
