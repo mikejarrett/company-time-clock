@@ -37,7 +37,7 @@ class PunchController(BaseController):
         super(PunchController, self).__init__(session)
         self.user_controller = UserController(self.session)
 
-    def punch_in(self, user_id, description, tags=()):
+    def punch_in(self, user_id, description, tags=(), user=None):
         """ Adds a new punch entry for the user and if there is an old punch
         entry that does not have a `end_time` use the same time as the
         start_time` of this new punch.
@@ -46,15 +46,17 @@ class PunchController(BaseController):
             user_id: The user id that this punch will be associated with
             description: A description of the activity that is being worked on
             tags: A list of tags that will be associated with this punch
+            user: Option user object to help reduce the calls to the DB
 
         Returns:
-            None
+            punch: Returns the punch that was created
 
         Raises:
             None
         """
         now = datetime.now()
-        user = self.user_controller.get_user_by_id(user_id)
+        if not user:
+            user = self.user_controller.get_user_by_id(user_id)
         if not user:
             # TODO Add some logging here, maybe change the flow
             return
@@ -68,28 +70,32 @@ class PunchController(BaseController):
         )
         self.session.add(punch)
         self.session.commit()
+        return punch
 
-    def punch_out(self, user_id):
+    def punch_out(self, user_id, user=None):
         """ Set the `end_time` for the most recent `start_time` punch of the
         user provided by the `user_id`
 
         Args:
             user_id: The user id that this punch will be associated with
+            user: Option user object to help reduce the calls to the DB
 
         Returns:
-            None
+            punch: Returns the punch that was updated
 
         Raises:
             None
         """
         now = datetime.now()
-        user = self.user_controller.get_user_by_id(user_id)
+        if not user:
+            user = self.user_controller.get_user_by_id(user_id)
         if not user:
             # TODO Add some logging here, maybe change the flow
             return
 
-        self._end_last_punch(user, now)
+        punch = self._end_last_punch(user, now)
         self.session.commit()
+        return punch
 
     def _end_last_punch(self, user, end_time):
         """ Retrieve the last user punch that does not have and end time
@@ -110,6 +116,7 @@ class PunchController(BaseController):
         if punch:
             punch.end_time = end_time
             self.session.add(punch)
+        return punch
 
     def _get_or_create_tags(self, tags):
         """ Loop through iterable of tags and get them if they are in the
@@ -129,6 +136,7 @@ class PunchController(BaseController):
 
         new_tags = []
         for tag in tags:
+            tag = tag.lower()
             instance = self.session.query(Tag).filter_by(value=tag).first()
             if instance:
                 new_tags.append(instance)
@@ -217,3 +225,10 @@ class UserController(BaseController):
             None
         """
         return self.session.query(User).get(user_id)
+
+    def get_users(self):
+        return self.session.query(User).all()
+
+    def create_user(self, username, fullname, password):
+        user = User(username=username.lower(), fullname=fullname)
+        user.set_password(password)

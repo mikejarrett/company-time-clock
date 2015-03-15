@@ -8,18 +8,27 @@ It is now currently under rewrite to be both a console and web (Flask) applicati
 TODO
 ====
 [ ] Tests
+
 [ ] Logging
+
 [ ] Flesh-out Flask server more
+
 [ ] Clean up HTML
+
 [ ] Fix setup.py
+
 [ ] Ready for deplyoment to pypi
+
+[x] Implement CLI
+
+[] Cleanup CLI
 
 
 Licence
 =======
 The MIT License (MIT)
 
-Copyright (c) [year] [fullname]
+Copyright (c) 2015 Mike Jarrett
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
