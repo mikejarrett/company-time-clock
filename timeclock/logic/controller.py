@@ -5,7 +5,7 @@ Classes that control the "punching in" and "punching out" to keep track of
 time, tasks and thing else that needs to be tracked via time
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy.orm import sessionmaker
 
@@ -30,6 +30,13 @@ class BaseController(object):
 class PunchController(BaseController):
     """ Controller class that handles the punching in and out for users """
 
+    def __init__(self, session=None):
+        """ Init super on BaseController and initialize a user controller and
+        set it to `user_controller`
+        """
+        super(PunchController, self).__init__(session)
+        self.user_controller = UserController(self.session)
+
     def punch_in(self, user_id, description, tags=()):
         """ Adds a new punch entry for the user and if there is an old punch
         entry that does not have a `end_time` use the same time as the
@@ -44,10 +51,14 @@ class PunchController(BaseController):
             None
 
         Raises:
-            DoesNotExist is user not found in the databse
+            None
         """
         now = datetime.now()
-        user = self._get_user(user_id)
+        user = self.user_controller.get_user_by_id(user_id)
+        if not user:
+            # TODO Add some logging here, maybe change the flow
+            return
+
         self._end_last_punch(user, now)
         tags = self._get_or_create_tags(tags)
 
@@ -72,29 +83,13 @@ class PunchController(BaseController):
             None
         """
         now = datetime.now()
-        user = self._get_user(user_id)
+        user = self.user_controller.get_user_by_id(user_id)
+        if not user:
+            # TODO Add some logging here, maybe change the flow
+            return
+
         self._end_last_punch(user, now)
         self.session.commit()
-
-    def _get_user(self, user_id):
-        """ Attempts to retrieve the user from the database by id if it nothing
-        is returned raise DoesNotExist
-
-        Args:
-            user_id: The user id that of the user we want
-
-        Returns:
-            user
-
-        Raises:
-            DoesNotExist is user not found in the databse
-        """
-        user = self.session.query(User).get(user_id)
-        if not user:
-            raise DoesNotExist(
-                'User with id {} was not found in the database'.format(user_id)
-            )
-        return user
 
     def _end_last_punch(self, user, end_time):
         """ Retrieve the last user punch that does not have and end time
@@ -143,20 +138,82 @@ class PunchController(BaseController):
                 new_tags.append(instance)
         return new_tags
 
+    def get_user_punches_by_range(self, user, start=None, end=None):
+        """ Retrieve all punches for a specific User object filtering by start
+        and end time.
+        If end is not provided set it to now
+        If start is not provided set now minus 14 daus
+
+        Args:
+            user: User object
+            start: datetime object
+            end: datetime object
+
+        Returns:
+            Query of punches in that range
+
+        Raises:
+            None
+        """
+        if not end:
+            end = datetime.now()
+
+        if not start:
+            start = end - timedelta(days=14)
+
+        return self.session.query(Punch).filter_by(user=user).filter(
+            Punch.start_time>=start
+        ).filter(Punch.end_time<=end).order_by(Punch.start_time)
+
 
 class UserController(BaseController):
 
     def validate_username_and_password(self, username, password):
+        """ Valid the username and password against what is stored in the
+        database
+
+        Args:
+            username: string username
+            password: string of password
+
+        Returns:
+            user: a user object or None
+            validated: boolean if validated or not
+
+        Raises:
+            None
+        """
         user = self.get_user(username)
         if user:
             validated = validate_password(password, user.password)
         else:
             validated = False
-
         return user, validated
 
     def get_user(self, username):
+        """ Retrieve the user by username
+
+        Args:
+            username: string username
+
+        Returns:
+            user: User object
+
+        Raises:
+            None
+        """
         return self.session.query(User).filter_by(username=username).first()
 
     def get_user_by_id(self, user_id):
-        return self.session.query(User).filter_by(user_id=user_id).first()
+        """ Attempts to retrieve the user from the database by id
+
+        Args:
+            user_id: The user id that of the user we want
+
+        Returns:
+            user: User object or none
+
+        Raises:
+            None
+        """
+        return self.session.query(User).get(user_id)
