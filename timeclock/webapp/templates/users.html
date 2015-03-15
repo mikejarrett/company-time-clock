@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div>
+    <table>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.username }}</td>
+            <td>{{ user.fullname }}</td>
+            <td>
+                {% with punches = user.punches %}
+                {% if punches %}<a href='/punches?user={{ user.id }}'>{% endif %}
+                    Punches
+                {% if punches %}</a>{% endif %}
+                {% endwith %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}
+

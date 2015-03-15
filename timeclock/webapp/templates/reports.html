@@ -2,10 +2,15 @@
 
 {% block content %}
 <div>
-    <ul>
+    <table>
         {% for punch in punches %}
-        <li>{{ punch.id }} - {{ punch.start_time }}</li>
+        <tr>
+            <td>{{ punch.description }}</td>
+            <td>{{ punch.start_time }}</td>
+            <td>{{ punch.end_time }}</td>
+            <td>{% for tag in punch.tags %}{{ tag.value }} {% endfor %}</td>
+        </tr>
         {% endfor %}
-    </ul>
+    </table>
 </div>
 {% endblock %}
