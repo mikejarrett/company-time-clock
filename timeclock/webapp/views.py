@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import render_template, redirect, request
+from flask import render_template, redirect, request, url_for
 from flask.ext.login import (
     current_user, login_required, login_user, logout_user
 )
@@ -22,7 +22,7 @@ def login():
 
         if validated:
             login_user(user, remember=True)
-            return redirect('/punches')
+            return redirect(request.args.get("next") or url_for("punches"))
         else:
             return redirect('/index')
 
@@ -38,9 +38,15 @@ def logout():
 @app.route('/punches')
 @login_required
 def punches():
-    punches = logic.PunchController().get_user_punches_by_range(
-        current_user)
-    return render_template('reports.html', title='Reports', punches=punches)
+    user = request.args.get('user')
+    if user:
+        user = logic.UserController().get_user_by_id(user)
+    else:
+        user = current_user
+    punches = logic.PunchController().get_user_punches_by_range(user)
+
+    title = '{} Punches'.format(user.fullname)
+    return render_template('punches.html', title=title, punches=punches)
 
 
 @app.route('/users')

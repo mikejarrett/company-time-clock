@@ -7,7 +7,7 @@
         <tr>
             <td>{{ punch.description }}</td>
             <td>{{ punch.start_time }}</td>
-            <td>{{ punch.end_time }}</td>
+            <td>{% if punch.end_time %}{{ punch.end_time }}{% else %} {% endif %}</td>
             <td>{% for tag in punch.tags %}{{ tag.value }} {% endfor %}</td>
         </tr>
         {% endfor %}
