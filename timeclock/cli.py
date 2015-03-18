@@ -137,6 +137,8 @@ class TimeClock(object):
         print("=" * len(header))
         for user in self.user_controller.get_users():
             if user.username is None:
+                print(formatter.format(user.username, ''))
+
             print(formatter.format(user.username, user.fullname))
 
 
