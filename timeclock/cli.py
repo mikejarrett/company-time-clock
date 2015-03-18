@@ -7,6 +7,7 @@ import argparse
 import sys
 
 from logic import controller as logic
+from logic.utils import seconds_to_hours
 
 
 class TimeClock(object):
@@ -16,14 +17,14 @@ class TimeClock(object):
         self.user_controller = self.punch_controller.user_controller
         self.user = None
         self._running = False
-        self._options_mapping = OrderedDict({
-            'I': ['punch_in', 'Punch In'],
-            'O': ['punch_out', 'Punch Out'],
-            'P': ['list_punches', 'List Punches'],
-            'C': ['create_user', 'Create User'],
-            'L': ['list_users', 'List users'],
-            'Q': ['quit', 'Quit'],
-        })
+        self._options_mapping = OrderedDict([
+            ('I', ['punch_in', 'Punch In']),
+            ('O', ['punch_out', 'Punch Out']),
+            ('P', ['list_punches', 'List Punches']),
+            ('C', ['create_user', 'Create User']),
+            ('L', ['list_users', 'List users']),
+            ('Q', ['quit', 'Quit']),
+        ])
 
     def get_username(self):
         username = None
@@ -99,18 +100,23 @@ class TimeClock(object):
         if punch:
             print('Punched out at: {}'.format(punch.end_time))
         else:
-            print('Oops... Something went wrong.')
+            print(
+                "Oops... We couldn't find an incomplete punch or something "
+                "went wrong."
+            )
 
     def list_punches(self):
-        header = '{0:40} {1:26}\t{2:25}'.format(
-            'Description', 'Punch In', 'Punch Out'
+        header = '{0:40} {1:26}\t{2:25}\t{3:6}'.format(
+            'Description', 'Punch In', 'Punch Out', 'Total'
         )
         print(header)
         print('=' * len(header))
 
         for punch in self.user.punches:
-            print('{0:40} {1}\t{2}'.format(
-                punch.description[:40], punch.start_time, punch.end_time
+
+            print('{0:40} {1}\t{2}\t{3:2.3f}'.format(
+                punch.description[:40], punch.start_time, punch.end_time,
+                punch.total_time
             ))
 
     def create_user(self):

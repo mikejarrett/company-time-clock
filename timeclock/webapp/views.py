@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import render_template, redirect, request, url_for
+from flask import render_template, redirect, request, url_for, abort
 from flask.ext.login import (
     current_user, login_required, login_user, logout_user
 )
@@ -9,6 +9,7 @@ from webapp import app
 from webapp.forms import LoginForm
 
 from logic import controller as logic
+from logic.utils import time_difference_in_hours
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -54,3 +55,18 @@ def punches():
 def users():
     users = logic.UserController().get_users()
     return render_template('users.html', title='Users', users=users)
+
+
+@app.route('/user/<username>')
+@login_required
+def user_profile(username):
+    user = logic.UserController().get_user_by_username(username)
+    if not user:
+        abort(404)
+
+    return render_template('user.html', title=user.fullname, user=user)
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404

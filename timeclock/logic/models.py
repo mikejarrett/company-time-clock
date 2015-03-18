@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from sqlalchemy import (
-    Column, DateTime, ForeignKey, Integer, Sequence, String, Table
+    Column, DateTime, ForeignKey, Integer, Sequence, String, Table,
+    UniqueConstraint, Float
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
@@ -21,6 +22,8 @@ class User(Base):
     fullname = Column(String)
     password = Column(String)
     punches = relationship('Punch', backref='user')
+
+    UniqueConstraint('username', name='unque_username_constraint')
 
     def __repr__(self):
         return "<User(usename='{}', fullname='{}')>".format(
@@ -69,6 +72,7 @@ class Punch(Base):
     end_time = Column(DateTime)
     description = Column(String(100))
     user_id = Column(ForeignKey('users.id'))
+    total_time = Column(Float, default=0.0)
     tags = relationship(
         'Tag', secondary=_punch_tags, backref='punches'
     )

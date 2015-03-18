@@ -13,7 +13,7 @@ from sqlalchemy.orm import sessionmaker
 from .db import engine
 from .excepts import DoesNotExist
 from .models import User, Punch, Tag
-from .utils import validate_password
+from .utils import validate_password, time_difference_in_hours
 
 
 class BaseController(object):
@@ -116,6 +116,9 @@ class PunchController(BaseController):
         punch = punch_query.first()
         if punch:
             punch.end_time = end_time
+            punch.total_time = time_difference_in_hours(
+                punch.start_time, end_time
+            )
             self.session.add(punch)
         return punch
 
@@ -229,9 +232,47 @@ class UserController(BaseController):
         """
         return self.session.query(User).get(user_id)
 
+    def get_user_by_username(self, username):
+        """ Attempts to retrieve the user from the database by username
+
+        Args:
+            username: The username that of the user we want
+
+        Returns:
+            user: User object or none
+
+        Raises:
+            None
+        """
+        return self.session.query(User).filter_by(username=username).first()
+
     def get_users(self):
+        """ Get all users in the db
+
+        Args:
+            None
+
+        Returns:
+            All users in the db
+
+        Raises:
+            None
+        """
         return self.session.query(User).all()
 
     def create_user(self, username, fullname, password):
+        """ Create a user in the db and store password securely
+
+        Args:
+            username: string username
+            fullname: string fullname
+            password: string password
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
         user = User(username=username.lower(), fullname=fullname)
         user.set_password(password)
