@@ -1,24 +1,15 @@
 <html>
   <head>
-  {% if title %}
-  <title>{{ title }} - Time Clock</title>
-  {% else %}
-  <title>Welcome to the Time Clock</title>
-  {% endif %}
+    {% if title %}
+        <title>{{ title }} - Time Clock</title>
+    {% else %}
+        <title>Welcome to the Time Clock</title>
+    {% endif %}
   </head>
   <body>
-  <div><a href="/punches">Home</a></div>
-  <div><a href="/punches">My Punches</a></div>
-  <div><a href="/users">Users</a></div>
-  <hr>
-  {% with messages = get_flashed_messages() %}
-  {% if messages %}
-  <ul>
-      {% for message in messages %}
-      <li>{{ message  }} </li>
-      {% endfor %}
-  </ul>
-  {% endif %} {% endwith %}
-  {% block content %}{% endblock %}
+      {% include "top-nav.html" %}
+    <hr>
+    {% include "messages.html" %}
+    {% block content %}{% endblock %}
   </body>
 </html>

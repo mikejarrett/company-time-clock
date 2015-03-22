@@ -1,0 +1,9 @@
+<div><a href="/punch-in">Punch In</a></div>
+<div><a href="/punch-out">Punch Out</a></div>
+<div><a href="/punches">My Punches</a></div>
+<div><a href="/users">Users</a></div>
+{% if current_punch %}
+    <div>Current Punch:
+        <span>{{ current_punch.description }} {{ current_punch.start_time }} -- <a href='/punch-out'>Punch Out</a></span>
+    </div>
+{% endif %}

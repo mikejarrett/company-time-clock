@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Punch In</h1>
+  <form action="" method="post" name="punchin">
+      {{ form.hidden_tag() }}
+      <ul>
+          <li><span>{{ form.username.label }}</span> {{ form.username }}</li>
+          <li><span>{{ form.fullname.label }}</span> {{ form.fullname }}</li>
+          <li><span>{{ form.password.label }}</span> {{ form.password }}</li>
+          <li><span>{{ form.password2.label }}</span> {{ form.password2 }}</li>
+      <p><input type="submit" value="Submit"></p>
+  </form>
+{% endblock %}
+
