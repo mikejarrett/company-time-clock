@@ -31,12 +31,16 @@ class BaseController(object):
 class PunchController(BaseController):
     """ Controller class that handles the punching in and out for users """
 
-    def __init__(self, session=None):
+    def __init__(self, session=None, user_controller=None):
         """ Init super on BaseController and initialize a user controller and
         set it to `user_controller`
         """
         super(PunchController, self).__init__(session)
-        self.user_controller = UserController(self.session)
+
+        if user_controller:
+            self.user_controller = user_controller
+        else:
+            self.user_controller = UserController(self.session)
 
     def punch_in(self, user_id, description, tags=(), user=None):
         """ Adds a new punch entry for the user and if there is an old punch

@@ -10,3 +10,8 @@ from wtforms.validators import required
 class LoginForm(Form):
     username = TextField('Username', validators=[required()])
     password = PasswordField('Password', validators=[required()])
+
+
+class PunchInForm(Form):
+    description = TextField('Description', validators=[required()])
+    tags = TextField('Tags')
