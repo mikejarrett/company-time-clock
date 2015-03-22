@@ -93,16 +93,17 @@ def user_profile(username):
 @app.route('/punch-in', methods=['GET', 'POST'])
 @app.route('/user/<username>/edit')
 @login_required
-def user_edit(username):
+def user_edit(username=None):
     # TODO
-    user = USER_CONTROLLER.get_user_by_username(username)
-    form = forms.UserEditForm(username=user.username, fullname=user.fullname)
+    # user = USER_CONTROLLER.get_user_by_username(username)
+    # form = forms.UserEditForm(username=user.username, fullname=user.fullname)
+    form = forms.UserEditForm()
 
     if form.validate_on_submit():
         pass
 
     context = {
-        'title': 'Edit {}'.format(user.username),
+        'title': 'Edit User',
         'user': current_user,
         'current_punch': PUNCH_CONTROLLER.get_current_punch(current_user.id),
         'form': form,

@@ -10,6 +10,7 @@
             <td>{% if punch.end_time %}{{ punch.end_time }}{% else %} {% endif %}</td>
             <td>{{ punch.total_time }}</td>
             <td>{% for tag in punch.tags %}{{ tag.value }} {% endfor %}</td>
+            {#<td>{{ punch.serialize }}</td> #}
         </tr>
         {% endfor %}
     </table>
