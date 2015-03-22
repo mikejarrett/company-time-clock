@@ -1,19 +1,19 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Classes that control the "punching in" and "punching out" to keep track of
 time, tasks and thing else that needs to be tracked via time
 """
-
 from datetime import datetime, timedelta
+import logging
 
 from sqlalchemy import or_
 from sqlalchemy.orm import sessionmaker
 
 from .db import engine
-from .excepts import DoesNotExist
 from .models import User, Punch, Tag
-from .utils import validate_password, time_difference_in_hours
+from .utils import validate_password, time_difference_in_hours, Logged
+
+logger = logging.getLogger(__name__)
 
 
 class BaseController(object):
@@ -42,6 +42,7 @@ class PunchController(BaseController):
         else:
             self.user_controller = UserController(self.session)
 
+    @Logged()
     def punch_in(self, user_id, description, tags=(), user=None):
         """ Adds a new punch entry for the user and if there is an old punch
         entry that does not have a `end_time` use the same time as the
@@ -63,8 +64,10 @@ class PunchController(BaseController):
         if not user:
             user = self.user_controller.get_user_by_id(user_id)
         if not user:
-            # TODO Add some logging here, maybe change the flow
-            return
+            logger.info(
+                "Couldn't find user with id: [%s] in the databse", user_id
+            )
+            return False
 
         self._end_last_punch(user, now)
         tags = self._get_or_create_tags(tags)
@@ -77,6 +80,7 @@ class PunchController(BaseController):
         self.session.commit()
         return punch
 
+    @Logged()
     def punch_out(self, user_id, user=None):
         """ Set the `end_time` for the most recent `start_time` punch of the
         user provided by the `user_id`
@@ -95,13 +99,16 @@ class PunchController(BaseController):
         if not user:
             user = self.user_controller.get_user_by_id(user_id)
         if not user:
-            # TODO Add some logging here, maybe change the flow
-            return
+            logger.info(
+                "Couldn't find user with id: [%s] in the databse", user_id
+            )
+            return False
 
         punch = self._end_last_punch(user, now)
         self.session.commit()
         return punch
 
+    @Logged()
     def _end_last_punch(self, user, end_time):
         """ Retrieve the last user punch that does not have and end time
 
@@ -126,6 +133,7 @@ class PunchController(BaseController):
             self.session.add(punch)
         return punch
 
+    @Logged()
     def _get_or_create_tags(self, tags):
         """ Loop through iterable of tags and get them if they are in the
         database or create them if they are not in the database
@@ -154,6 +162,7 @@ class PunchController(BaseController):
                 new_tags.append(instance)
         return new_tags
 
+    @Logged()
     def get_user_punches_by_range(self, user, start=None, end=None):
         """ Retrieve all punches for a specific User object filtering by start
         and end time.
@@ -183,6 +192,22 @@ class PunchController(BaseController):
             Punch.end_time<=end, Punch.end_time==None
         )).order_by(Punch.start_time)
 
+    @Logged()
+    def get_current_punch(self, user_id):
+        """ Retrieve current active punch. If all pucnhes have start and end
+        return None
+
+        Args:
+            None
+
+        Returns:
+            punch: Punch object
+
+        Raises:
+            None
+        """
+        return self.session.query(Punch.description, Punch.start_time).filter(
+            Punch.end_time==None).filter(User.id==user_id).first()
 
 class UserController(BaseController):
 
@@ -201,27 +226,14 @@ class UserController(BaseController):
         Raises:
             None
         """
-        user = self.get_user(username)
+        user = self.get_user_by_username(username)
         if user:
             validated = validate_password(password, user.password)
         else:
             validated = False
         return user, validated
 
-    def get_user(self, username):
-        """ Retrieve the user by username
-
-        Args:
-            username: string username
-
-        Returns:
-            user: User object
-
-        Raises:
-            None
-        """
-        return self.session.query(User).filter_by(username=username).first()
-
+    @Logged()
     def get_user_by_id(self, user_id):
         """ Attempts to retrieve the user from the database by id
 
@@ -236,6 +248,7 @@ class UserController(BaseController):
         """
         return self.session.query(User).get(user_id)
 
+    @Logged()
     def get_user_by_username(self, username):
         """ Attempts to retrieve the user from the database by username
 
@@ -250,6 +263,7 @@ class UserController(BaseController):
         """
         return self.session.query(User).filter_by(username=username).first()
 
+    @Logged()
     def get_users(self):
         """ Get all users in the db
 

@@ -1,5 +1,8 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
+
+import logging
 
 from collections import OrderedDict
 from getpass import getpass
@@ -7,7 +10,9 @@ import argparse
 import sys
 
 from logic import controller as logic
-from logic.utils import seconds_to_hours
+from logic.utils import seconds_to_hours, Logged
+
+log = logging.getLogger(__name__)
 
 
 class TimeClock(object):
@@ -26,6 +31,7 @@ class TimeClock(object):
             ('Q', ['quit', 'Quit']),
         ])
 
+    @Logged()
     def get_username(self):
         username = None
         try:
@@ -36,7 +42,9 @@ class TimeClock(object):
 
         self.login(username)
 
+    @Logged()
     def login(self, username):
+        log.debug('Username: [%s]', username)
         password = None
         validated = False
         try:
@@ -53,6 +61,7 @@ class TimeClock(object):
         except KeyboardInterrupt:
             return
 
+    @Logged()
     def run(self):
         try:
             while self._running:
@@ -69,6 +78,7 @@ class TimeClock(object):
 
         print('Goodbye!')
 
+    @Logged()
     def menu(self):
         print("\n")
         print("Time Clock Menu")
@@ -77,10 +87,14 @@ class TimeClock(object):
             print('{0:^3} {1}'.format(key, options[1]))
         return raw_input('Please select an options: ')
 
+    @Logged()
     def punch_in(self):
         description = None
         while not description:
-            description = raw_input('Description: ')
+            try:
+                description = raw_input('Description: ')
+            except KeyboardInterrupt:
+                return
 
         tags = raw_input(
             'Enter tags as comma seperated values (enter for none): '
@@ -95,6 +109,8 @@ class TimeClock(object):
         else:
             print('Oops... Something went wrong.')
 
+
+    @Logged()
     def punch_out(self):
         punch = self.punch_controller.punch_out(self.user.id, self.user)
         if punch:
@@ -102,9 +118,10 @@ class TimeClock(object):
         else:
             print(
                 "Oops... We couldn't find an incomplete punch or something "
-                "went wrong."
+                " else went wrong."
             )
 
+    @Logged()
     def list_punches(self):
         header = '{0:40} {1:26}\t{2:25}\t{3:6}'.format(
             'Description', 'Punch In', 'Punch Out', 'Total'
@@ -113,12 +130,12 @@ class TimeClock(object):
         print('=' * len(header))
 
         for punch in self.user.punches:
-
             print('{0:40} {1}\t{2}\t{3:2.3f}'.format(
                 punch.description[:40], punch.start_time, punch.end_time,
                 punch.total_time
             ))
 
+    @Logged()
     def create_user(self):
         username = None
         while not username:
@@ -136,6 +153,7 @@ class TimeClock(object):
 
         self.user_controller.create_user(username, fullname, password)
 
+    @Logged()
     def list_users(self):
         formatter = '{0:20}\t{1:50}'
         header = formatter.format('Username', 'Full Name')
