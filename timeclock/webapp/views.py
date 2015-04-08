@@ -87,7 +87,28 @@ def punches():
 def users():
     users = USER_CONTROLLER.get_users()
 
+    rows = []
+    for user in users:
+        punches = 'Punches' if user.punches else ''
+        punches_url = ''
+        if punches:
+            url = '{}?user={}'.format(url_for('punches'), user.id)
+
+        row = [{
+            'value': user.username,
+            'url': url_for('user_profile', username=user.username)
+        }, {
+            'value': user.fullname,
+        }, {
+            'value': punches,
+            'url': punches_url,
+        }]
+        cells = {'cells': row}
+        rows.append(cells)
+
     context = {
+        'columns': ['Username', 'Full Name', 'Punches'],
+        'rows': rows,
         'title_': 'Users',
         'users': users,
         'current_punch': PUNCH_CONTROLLER.get_current_punch(current_user.id)
