@@ -2,11 +2,10 @@
 
 {% block content %}
 <h1>Punch In</h1>
-  <form action="" method="post" name="punchin">
+  <form class="form" action="" method="post" name="punchin">
       {{ form.hidden_tag() }}
-      <ul>
-          <li><span>{{ form.description.label }}</span> {{ form.description }}</li>
-          <li><span>{{ form.tags.label }}</span> {{ form.tags }}</li>
+      {{ wtf.form_field(form.description) }}
+      {{ wtf.form_field(form.tags) }}
       <p><input type="submit" value="Punch In"></p>
   </form>
 {% endblock %}

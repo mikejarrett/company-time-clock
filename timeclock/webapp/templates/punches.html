@@ -1,18 +1,5 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div>
-    <table>
-        {% for punch in punches %}
-        <tr>
-            <td>{{ punch.description }}</td>
-            <td>{{ punch.start_time }}</td>
-            <td>{% if punch.end_time %}{{ punch.end_time }}{% else %} {% endif %}</td>
-            <td>{{ punch.total_time }}</td>
-            <td>{% for tag in punch.tags %}{{ tag.value }} {% endfor %}</td>
-            {#<td>{{ punch.serialize }}</td> #}
-        </tr>
-        {% endfor %}
-    </table>
-</div>
+    {% include "table.html" %}
 {% endblock %}

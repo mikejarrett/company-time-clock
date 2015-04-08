@@ -32,7 +32,7 @@ def login():
             return redirect('/index')
 
     context = {
-        'title': 'Sign In',
+        'title_': 'Sign In',
         'form': form,
     }
     return render_template('login.html', **context)
@@ -54,9 +54,29 @@ def punches():
         user = current_user
     punches = PUNCH_CONTROLLER.get_user_punches_by_range(user)
 
+    rows = []
+    for punch in punches:
+        row = [{
+            'value', punch.description,
+        }, {
+            'value': punch.start_time,
+        }, {
+            'value': punch.end_time,
+        }, {
+            'value': punch.total_time,
+        }, {
+            'value': '',  # [tag.value for tag in punch.tags if tag.value else ''],
+        }]
+        cells = {'cells': row}
+        rows.append(cells)
+
     context = {
-        'title':  '{} Punches'.format(user.fullname),
-        'punches': punches,
+        'title_':  '{} Punches'.format(user.fullname),
+        # 'punches': punches,
+        'rows': rows,
+        'columns': [
+            'Description', 'Start Time', 'End Time', 'Total Time', 'Tags'
+        ],
         'current_punch': PUNCH_CONTROLLER.get_current_punch(current_user.id)
     }
     return render_template('punches.html', **context)
@@ -68,7 +88,7 @@ def users():
     users = USER_CONTROLLER.get_users()
 
     context = {
-        'title': 'Users',
+        'title_': 'Users',
         'users': users,
         'current_punch': PUNCH_CONTROLLER.get_current_punch(current_user.id)
     }
@@ -83,27 +103,31 @@ def user_profile(username):
         abort(404)
 
     context = {
-        'title': user.fullname,
+        'title_': user.fullname,
         'user': user,
         'current_punch': PUNCH_CONTROLLER.get_current_punch(current_user.id)
     }
     return render_template('user.html', **context)
 
 
-@app.route('/punch-in', methods=['GET', 'POST'])
+# @app.route('/punch-in', methods=['GET', 'POST'])
 @app.route('/user/<username>/edit')
 @login_required
 def user_edit(username=None):
+    user = USER_CONTROLLER.get_user_by_username(username)
+    if not user:
+        abort(404)
+
     # TODO
     # user = USER_CONTROLLER.get_user_by_username(username)
-    # form = forms.UserEditForm(username=user.username, fullname=user.fullname)
+    form = forms.UserEditForm(username=user.username, fullname=user.fullname)
     form = forms.UserEditForm()
 
     if form.validate_on_submit():
         pass
 
     context = {
-        'title': 'Edit User',
+        'title_': 'Edit User',
         'user': current_user,
         'current_punch': PUNCH_CONTROLLER.get_current_punch(current_user.id),
         'form': form,
@@ -124,7 +148,7 @@ def punchin():
         return redirect(url_for("punches"))
 
     context = {
-        'title': 'Sign In',
+        'title_': 'Sign In',
         'form': form,
         'current_punch': PUNCH_CONTROLLER.get_current_punch(current_user.id)
     }

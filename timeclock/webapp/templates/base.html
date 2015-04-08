@@ -1,13 +1,20 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+<!doctype html>
 <html>
   <head>
-    {% if title %}
-        <title>{{ title }} - Time Clock</title>
-    {% else %}
-        <title>Welcome to the Time Clock</title>
-    {% endif %}
+      {% block title %}
+        {% if title_ %}
+        {{ title_ }} - Time Clock
+        {% else %}
+        Welcome to the Time Clock
+        {% endif %}
+      {% endblock %}
   </head>
   <body>
+      {% block navbar %}
       {% include "top-nav.html" %}
+      {% endblock %}
     <hr>
     {% include "messages.html" %}
     {% block content %}{% endblock %}

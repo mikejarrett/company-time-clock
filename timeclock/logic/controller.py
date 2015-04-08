@@ -9,7 +9,7 @@ import logging
 from sqlalchemy import or_
 from sqlalchemy.orm import sessionmaker
 
-from .db import engine
+from .db import engine, session
 from .models import User, Punch, Tag
 from .utils import validate_password, time_difference_in_hours, Logged
 
